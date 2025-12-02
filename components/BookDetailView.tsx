@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Book } from '../types';
-import { ArrowLeft, Bookmark, Share2, Download, ArrowUpRight, ChevronUp, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Heart, Share2, Download, ArrowUpRight, ChevronUp, ChevronDown, ChevronRight } from 'lucide-react';
 
 interface BookDetailViewProps {
   book: Book;
   contextBooks: Book[];
   onBack: () => void;
   onSelectBook: (book: Book) => void;
+  isWishlisted: boolean;
+  onToggleWishlist: (book: Book) => void;
 }
 
 // "Dictionary" object to simulate extra details that might not come from the simple AI response
@@ -19,13 +21,15 @@ const STATIC_DETAILS: Record<string, any> = {
   }
 };
 
-const BookDetailView: React.FC<BookDetailViewProps> = ({ book, contextBooks, onBack, onSelectBook }) => {
+const BookDetailView: React.FC<BookDetailViewProps> = ({ book, contextBooks, onBack, onSelectBook, isWishlisted, onToggleWishlist }) => {
   // Use book specific details or fall back to default
   const details = STATIC_DETAILS[book.id] || STATIC_DETAILS.default;
   const currentIndex = contextBooks.findIndex(b => b.id === book.id);
   
   const hasNext = currentIndex < contextBooks.length - 1;
   const hasPrev = currentIndex > 0;
+
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const handleNext = () => {
     if (hasNext) {
@@ -37,6 +41,13 @@ const BookDetailView: React.FC<BookDetailViewProps> = ({ book, contextBooks, onB
     if (hasPrev) {
         onSelectBook(contextBooks[currentIndex - 1]);
     }
+  };
+
+  const handleFeatureUnavailable = () => {
+    setToastMsg("App is only focused on recommendation");
+    setTimeout(() => {
+        setToastMsg(null);
+    }, 3000);
   };
 
   // Keyboard navigation
@@ -53,6 +64,13 @@ const BookDetailView: React.FC<BookDetailViewProps> = ({ book, contextBooks, onB
   return (
     <div key={book.id} className="w-full min-h-screen bg-[#FDFBF7] p-8 lg:p-16 animate-fade-in relative z-50 flex flex-col">
       
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] bg-red-50 border border-red-200 text-red-600 px-6 py-3 rounded-full shadow-lg font-medium animate-fade-in-up">
+            {toastMsg}
+        </div>
+      )}
+
       {/* Navigation */}
       <div className="flex justify-between items-center mb-8 lg:mb-12 animate-slide-up">
         <button 
@@ -138,18 +156,36 @@ const BookDetailView: React.FC<BookDetailViewProps> = ({ book, contextBooks, onB
 
            {/* Action Bar */}
            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 lg:gap-8 pb-8 border-b border-slate-200 animate-slide-up delay-400">
-              <button className="bg-slate-900 text-white px-8 py-4 rounded-full font-bold flex items-center gap-2 hover:bg-slate-800 transition-transform hover:scale-105 active:scale-95 shadow-xl shadow-slate-200">
+              <button 
+                onClick={handleFeatureUnavailable}
+                className="bg-slate-900 text-white px-8 py-4 rounded-full font-bold flex items-center gap-2 hover:bg-slate-800 transition-transform hover:scale-105 active:scale-95 shadow-xl shadow-slate-200"
+              >
                  Start reading <ArrowUpRight size={18} />
               </button>
               
               <div className="flex items-center gap-4">
-                <button className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-rose-500 transition-colors">
-                    <Bookmark size={20} />
+                <button 
+                    onClick={() => onToggleWishlist(book)}
+                    className={`
+                        w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-200 transform active:scale-90
+                        ${isWishlisted 
+                            ? 'bg-rose-50 text-rose-500 border-rose-100' 
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-rose-400'}
+                    `}
+                    title={isWishlisted ? "Remove from favorites" : "Add to favorites"}
+                >
+                    <Heart size={20} className={isWishlisted ? "fill-current" : ""} />
                 </button>
-                <button className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-violet-500 transition-colors">
+                <button 
+                    onClick={handleFeatureUnavailable}
+                    className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-violet-500 transition-colors"
+                >
                     <Share2 size={20} />
                 </button>
-                <button className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-blue-500 transition-colors">
+                <button 
+                    onClick={handleFeatureUnavailable}
+                    className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-blue-500 transition-colors"
+                >
                     <Download size={20} />
                 </button>
               </div>

@@ -1,13 +1,16 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Loader2, Sparkles, ArrowRight, Library, Info, Cpu, Heart, ScanSearch, Tags, BrainCircuit, BookOpen } from 'lucide-react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Search, Loader2, Sparkles, ArrowRight, Library, HelpCircle } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import Shelf from './components/Shelf';
 import BookCard from './components/BookCard';
 import BookDetailView from './components/BookDetailView';
+import AboutView from './components/AboutView';
 import ToneSelector from './components/ToneSelector';
 import CategorySelector from './components/CategorySelector';
 import { Book, SearchParams, BookCategory, EmotionalTone } from './types';
 import { fetchBookRecommendations } from './services/geminiService';
+import './app.css';
+import gsap from 'gsap';
 
 // Fallback data for initial view
 const TRENDING_BOOKS: Book[] = [
@@ -85,6 +88,11 @@ const App: React.FC = () => {
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [selectedContext, setSelectedContext] = useState<Book[]>([]);
 
+  // Refs for animation
+  const headerTextRef = useRef<HTMLSpanElement>(null);
+  const subTextRef = useRef<HTMLParagraphElement>(null);
+  const hasAnimatedRef = useRef(false);
+
   // Memoize classics list to keep IDs stable
   const classicsBooks = useMemo(() => {
     return [...TRENDING_BOOKS].reverse().map((book, i) => ({
@@ -92,6 +100,75 @@ const App: React.FC = () => {
         id: `classic-${i}` // distinct IDs
     }));
   }, []);
+
+  // GSAP Typewriter Animation
+  useEffect(() => {
+    // Only run if we are in search view, no book is selected (so header is visible), and element ref exists
+    if (currentView === 'search' && !selectedBook && headerTextRef.current) {
+      // If animation has already played once, skip it and show final state
+      if (hasAnimatedRef.current) {
+        headerTextRef.current.innerText = "Tell me what you’re looking for?";
+        if (subTextRef.current) {
+            gsap.set(subTextRef.current, { opacity: 1 });
+        }
+        return;
+      }
+
+      // Mark as animated for future renders
+      
+
+      const phrases = ["Hi There,", "I am your curated AI librarian", "Tell me what you’re looking for?"];
+      const masterTl = gsap.timeline({ repeat: 0 });
+      const textEl = headerTextRef.current;
+      const sub = subTextRef.current;
+
+      // Reset
+      textEl.innerText = "";
+      if (sub) gsap.set(sub, { opacity: 0 });
+
+      phrases.forEach((phrase, index) => {
+        const isLast = index === phrases.length - 1;
+        const tl = gsap.timeline();
+        const proxy = { len: 0 };
+        
+        // Typing
+        tl.to(proxy, {
+            len: phrase.length,
+            duration: phrase.length * 0.05, // Typing speed
+            ease: "none",
+            onUpdate: () => {
+                textEl.innerText = phrase.substring(0, Math.ceil(proxy.len));
+            }
+        });
+
+        // Pause after typing
+        tl.to({}, { duration: isLast ? 0 : 0.8 });
+
+        // Backspace (if not last phrase)
+        if (!isLast) {
+            tl.to(proxy, {
+                len: 0,
+                duration: phrase.length * 0.025, // Backspace speed
+                ease: "none",
+                onUpdate: () => {
+                    textEl.innerText = phrase.substring(0, Math.ceil(proxy.len));
+                }
+            });
+            // Small pause before next word starts
+            tl.to({}, { duration: 0.2 });
+        } else {
+             // If last, reveal subtext
+             tl.to(sub, { opacity: 1, duration: 1 ,onComplete:()=>{hasAnimatedRef.current = true;}}, "+=0.2");
+        }
+
+        masterTl.add(tl);
+      });
+
+      return () => {
+        masterTl.kill();
+      };
+    }
+  }, [currentView, selectedBook]); // Added selectedBook dependency to restore text when returning from details
 
   const handleSearch = async (e?: React.FormEvent) => {
     if(e) e.preventDefault();
@@ -142,9 +219,9 @@ const App: React.FC = () => {
   const displayedResults = showAllResults ? searchResults : searchResults.slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-slate-800 flex font-sans">
+    <div className="min-h-screen bg-[#FDFBF7] text-slate-800 flex font-sans overflow-x-hidden">
       
-      {/* Sidebar */}
+      {/* Sidebar - Handles Hamburger Logic internally */}
       <Sidebar 
         currentView={currentView} 
         onChangeView={(view) => {
@@ -153,7 +230,7 @@ const App: React.FC = () => {
         }} 
       />
 
-      <main className="flex-1 ml-0 lg:ml-64 min-h-screen flex flex-col relative">
+      <main className="flex-1 ml-0 lg:ml-64 min-h-screen flex flex-col relative pt-16 lg:pt-0 w-full">
         
         {/* Detail Overlay / View */}
         {selectedBook ? (
@@ -162,33 +239,35 @@ const App: React.FC = () => {
                 contextBooks={selectedContext}
                 onBack={() => setSelectedBook(null)}
                 onSelectBook={(book) => setSelectedBook(book)}
+                isWishlisted={isBookInWishlist(selectedBook.id)}
+                onToggleWishlist={toggleWishlist}
             />
         ) : (
             <>
                 {/* Top Search / Hero Section - Only show if NOT on About page */}
                 {currentView !== 'about' && (
-                    <div className="pl-8 lg:pl-16 pt-12 pb-8 max-w-[1200px] animate-fade-in">
+                    <div className="px-4 lg:pl-16 lg:pr-8 pt-8 lg:pt-12 pb-8 max-w-[1200px] animate-fade-in w-full">
                         {/* Header Text */}
-                        <div className="mb-6">
+                        <div className=" header-text mb-6 min-h-[120px] lg:min-h-[140px] flex flex-col justify-center">
                             <div className="flex items-center gap-2 mb-3">
                                 <span className="bg-violet-100 text-violet-700 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase flex items-center gap-1">
                                     <Sparkles size={12} /> AI Librarian
                                 </span>
                             </div>
-                            <h2 className="text-3xl lg:text-5xl font-serif font-bold text-slate-900 mb-3 leading-tight tracking-tight">
-                                Find your perfect story.
+                            <h2 className="text-3xl lg:text-5xl font-serif font-bold text-slate-900 mb-3 leading-tight tracking-tight min-h-[1.2em] break-words">
+                                <span ref={headerTextRef}></span><span className="cursor-blink text-violet-500">_</span>
                             </h2>
-                            <p className="text-slate-500 text-lg max-w-xl font-medium">
+                            <p ref={subTextRef} className="text-slate-500 text-base lg:text-lg max-w-xl font-medium opacity-0 break-words">
                                 Describe the plot, genre, or mood you're looking for.
                             </p>
                         </div>
 
                         {/* Search Interface */}
-                        <form onSubmit={handleSearch} className="space-y-6">
+                        <form onSubmit={handleSearch} className="space-y-6 w-full">
                             
                             {/* Search Bar - Floating Style */}
-                            <div className="relative group max-w-2xl">
-                                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                            <div className="relative group w-full max-w-2xl">
+                                <div className="absolute inset-y-0 left-0 pl-4 lg:pl-5 flex items-center pointer-events-none">
                                     <Search className="text-slate-400 group-focus-within:text-violet-500 transition-colors" size={20} />
                                 </div>
                                 <input
@@ -196,27 +275,27 @@ const App: React.FC = () => {
                                     value={params.query}
                                     onChange={(e) => setParams({ ...params, query: e.target.value })}
                                     placeholder="e.g. A mystery set in 1920s Paris..."
-                                    className="block w-full pl-12 pr-14 py-4 bg-white rounded-2xl text-lg font-medium text-slate-800 placeholder:text-slate-400 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] focus:shadow-[0_8px_30px_rgb(0,0,0,0.12)] focus:outline-none transition-all duration-300"
+                                    className="block w-full pl-11 lg:pl-12 pr-12 lg:pr-14 py-3 lg:py-4 bg-white rounded-2xl text-base lg:text-lg font-medium text-slate-800 placeholder:text-slate-400 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] focus:shadow-[0_8px_30px_rgb(0,0,0,0.12)] focus:outline-none transition-all duration-300"
                                 />
                                 <button 
                                     type="submit"
                                     disabled={loading || !params.query.trim()}
-                                    className="absolute right-2 top-2 bottom-2 bg-slate-900 hover:bg-violet-600 text-white w-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="absolute right-2 top-2 bottom-2 bg-slate-900 hover:bg-violet-600 text-white w-9 lg:w-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {loading ? <Loader2 className="animate-spin" size={18} /> : <ArrowRight size={18} />}
+                                    {loading ? <Loader2 className="animate-spin" size={16} /> : <ArrowRight size={16} />}
                                 </button>
                             </div>
 
                             {/* Filters */}
-                            <div className="flex flex-col gap-6 max-w-4xl pt-2">
-                                <div className="flex flex-col gap-3">
+                            <div className="flex flex-col gap-6 max-w-4xl pt-2 w-full">
+                                <div className="flex flex-col gap-3 w-full">
                                     <CategorySelector 
                                         selectedCategory={params.category}
                                         onSelect={(cat) => setParams(prev => ({ ...prev, category: cat }))} 
                                     />
                                 </div>
                                 <div className="h-px bg-slate-100 w-full max-w-xl"></div>
-                                <div className="flex flex-col gap-3">
+                                <div className="flex flex-col gap-3 w-full">
                                     <ToneSelector 
                                         selectedTone={params.tone}
                                         onSelect={(t) => setParams(prev => ({ ...prev, tone: t }))}
@@ -228,125 +307,12 @@ const App: React.FC = () => {
                 )}
 
                 {/* Content Area */}
-                <div className="flex-1 pl-8 lg:pl-16 pr-8 py-10 w-full max-w-[1600px]">
+                <div className="flex-1 px-4 lg:pl-16 lg:pr-8 py-6 lg:py-10 w-full max-w-[1600px] overflow-hidden">
                 
                 {currentView === 'about' ? (
-                    <div className="animate-slide-up max-w-5xl pb-20">
-                         <div className="flex items-end gap-4 mb-10 pl-2 border-b border-slate-100 pb-6">
-                            <h2 className="text-4xl font-serif font-bold text-slate-900">About BookMood</h2>
-                            <span className="text-slate-400 font-medium pb-1.5 text-base">v1.0</span>
-                        </div>
-
-                        {/* Intro Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-                            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-                                <p className="text-xl text-slate-700 font-serif leading-relaxed mb-6">
-                                    Readowl is an AI-powered book discovery engine designed to help you find your next great read based on not just genre, but specific topics and emotional resonance.
-                                </p>
-                                <p className="text-slate-500 leading-relaxed">
-                                    Traditional search engines rely on keywords. Readowl understands the <em>feeling</em> of a story. Whether you want something "suspenseful set in space" or "happy and heartwarming about baking", our AI librarian curates a personalized shelf just for you.
-                                </p>
-                            </div>
-                            <div className="flex flex-col gap-4">
-                                <div className="bg-violet-50 p-6 rounded-3xl flex-1 border border-violet-100 flex flex-col justify-center">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <Cpu className="text-violet-600" size={24} />
-                                        <h3 className="font-bold text-slate-900">Powered by Gemini</h3>
-                                    </div>
-                                    <p className="text-sm text-slate-500 leading-relaxed">Leveraging Google's advanced language models for deep semantic understanding.</p>
-                                </div>
-                                <div className="bg-rose-50 p-6 rounded-3xl flex-1 border border-rose-100 flex flex-col justify-center">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <Heart className="text-rose-600" size={24} />
-                                        <h3 className="font-bold text-slate-900">Made for Readers</h3>
-                                    </div>
-                                    <p className="text-sm text-slate-500 leading-relaxed">Crafted with love for bookworms who cherish the magic of storytelling.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Technical Roadmap */}
-                        <div className="bg-white rounded-[40px] p-8 lg:p-12 shadow-sm border border-slate-100">
-                             <h3 className="text-2xl font-serif font-bold text-slate-900 mb-12 flex items-center gap-3">
-                                <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-sm">🛠️</span>
-                                How it works
-                             </h3>
-
-                             <div className="relative pl-4 lg:pl-10">
-                                {/* Connecting Line */}
-                                <div className="absolute left-[39px] lg:left-[63px] top-8 bottom-8 w-0.5 bg-gradient-to-b from-slate-200 via-slate-200 to-transparent"></div>
-
-                                {/* Step 1: Query Analysis */}
-                                <div className="relative flex gap-8 mb-16 group">
-                                    <div className="relative z-10 flex-shrink-0 w-12 h-12 lg:w-16 lg:h-16 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 group-hover:border-violet-500 group-hover:text-violet-600 transition-all duration-500 shadow-sm group-hover:shadow-violet-100 group-hover:scale-110">
-                                        <Search size={24} className="lg:w-7 lg:h-7" />
-                                    </div>
-                                    <div className="pt-1 lg:pt-3">
-                                        <h4 className="text-lg lg:text-xl font-bold text-slate-800 mb-2 group-hover:text-violet-700 transition-colors">1. Semantic Understanding</h4>
-                                        <p className="text-slate-500 leading-relaxed max-w-xl">
-                                            The AI doesn't just look for keywords. It analyzes your query (e.g., "{params.query || 'A cozy mystery...'}") to understand the underlying themes, plot structures, and narrative elements you desire.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Step 2: Vector Search */}
-                                <div className="relative flex gap-8 mb-16 group">
-                                    <div className="relative z-10 flex-shrink-0 w-12 h-12 lg:w-16 lg:h-16 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 group-hover:border-blue-500 group-hover:text-blue-600 transition-all duration-500 shadow-sm group-hover:shadow-blue-100 group-hover:scale-110">
-                                        <ScanSearch size={24} className="lg:w-7 lg:h-7" />
-                                    </div>
-                                    <div className="pt-1 lg:pt-3">
-                                        <h4 className="text-lg lg:text-xl font-bold text-slate-800 mb-2 group-hover:text-blue-700 transition-colors">2. Vector Search</h4>
-                                        <p className="text-slate-500 leading-relaxed max-w-xl">
-                                            Your request is converted into a high-dimensional vector. The system scans a vast embedding space to find books that are semantically "close" to your description, discovering hidden connections between distinct titles.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Step 3: Classification */}
-                                <div className="relative flex gap-8 mb-16 group">
-                                    <div className="relative z-10 flex-shrink-0 w-12 h-12 lg:w-16 lg:h-16 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 group-hover:border-amber-500 group-hover:text-amber-600 transition-all duration-500 shadow-sm group-hover:shadow-amber-100 group-hover:scale-110">
-                                        <Tags size={24} className="lg:w-7 lg:h-7" />
-                                    </div>
-                                    <div className="pt-1 lg:pt-3">
-                                        <h4 className="text-lg lg:text-xl font-bold text-slate-800 mb-2 group-hover:text-amber-700 transition-colors">3. Category Classification</h4>
-                                        <p className="text-slate-500 leading-relaxed max-w-xl">
-                                            Candidate books are filtered through a rigid classification layer. This ensures that if you asked for <strong>{params.category}</strong>, we strictly filter out other genres while maintaining relevance to your plot.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Step 4: Sentiment Analysis */}
-                                <div className="relative flex gap-8 mb-16 group">
-                                    <div className="relative z-10 flex-shrink-0 w-12 h-12 lg:w-16 lg:h-16 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 group-hover:border-rose-500 group-hover:text-rose-600 transition-all duration-500 shadow-sm group-hover:shadow-rose-100 group-hover:scale-110">
-                                        <BrainCircuit size={24} className="lg:w-7 lg:h-7" />
-                                    </div>
-                                    <div className="pt-1 lg:pt-3">
-                                        <h4 className="text-lg lg:text-xl font-bold text-slate-800 mb-2 group-hover:text-rose-700 transition-colors">4. Sentiment Analysis</h4>
-                                        <p className="text-slate-500 leading-relaxed max-w-xl">
-                                            Finally, the emotional arc of each book is analyzed. We match the book's "vibe" to your desired tone (<strong>{params.tone}</strong>), ensuring you get a {params.tone.toLowerCase()} experience rather than a jarring one.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Step 5: Result */}
-                                <div className="relative flex gap-8 group">
-                                    <div className="relative z-10 flex-shrink-0 w-12 h-12 lg:w-16 lg:h-16 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-lg shadow-slate-200 ring-4 ring-white group-hover:scale-110 transition-transform duration-300">
-                                        <BookOpen size={24} className="lg:w-7 lg:h-7" />
-                                    </div>
-                                    <div className="pt-1 lg:pt-3">
-                                        <h4 className="text-lg lg:text-xl font-bold text-slate-800 mb-2">5. Your Curated Shelf</h4>
-                                        <p className="text-slate-500 leading-relaxed max-w-xl">
-                                            The result is a personalized shelf of books, complete with AI-generated synopses explaining exactly <em>why</em> they fit your specific request.
-                                        </p>
-                                    </div>
-                                </div>
-
-                             </div>
-                        </div>
-
-                    </div>
+                    <AboutView />
                 ) : currentView === 'wishlist' ? (
-                    <div className="animate-fade-in">
+                    <div className="animate-fade-in pt-4 lg:pt-12 px-1 lg:px-0">
                         <div className="flex items-end gap-4 mb-10 pl-2 border-b border-slate-100 pb-6 max-w-5xl">
                             <h2 className="text-3xl font-serif font-bold text-slate-900">My Library</h2>
                             <span className="text-slate-400 font-medium pb-2 text-base">{wishlist.length} books</span>
@@ -366,7 +332,7 @@ const App: React.FC = () => {
                                 ))}
                             </Shelf>
                         ) : (
-                            <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200 max-w-3xl">
+                            <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200 max-w-3xl mx-2">
                                 <Library className="mx-auto text-slate-300 mb-4" size={48} />
                                 <p className="text-slate-500 text-lg">Your shelves are currently empty.</p>
                                 <button onClick={() => setCurrentView('search')} className="text-violet-600 font-bold mt-2 hover:underline">Go discover some books</button>
@@ -374,7 +340,7 @@ const App: React.FC = () => {
                         )}
                     </div>
                 ) : (
-                    <div className="space-y-16 pb-20">
+                    <div className="space-y-8 lg:space-y-16 pb-20">
                     {/* Loading State */}
                     {loading && (
                         <div className="w-full flex flex-col items-center justify-center py-10 opacity-70">
@@ -391,6 +357,15 @@ const App: React.FC = () => {
                                     title={`Curated for "${params.query}"`} 
                                     highlight 
                                     onViewAll={() => setShowAllResults(true)}
+                                    subtitle={
+                                        <button 
+                                            onClick={() => setCurrentView('about')}
+                                            className="flex items-center gap-2 px-4 py-2 rounded-full bg-violet-100 text-violet-700 text-sm font-bold hover:bg-violet-200 transition-colors"
+                                        >
+                                            <HelpCircle size={16} />
+                                            Show how it works
+                                        </button>
+                                    }
                                 >
                                         {displayedResults.map((book, i) => (
                                             <BookCard 
@@ -404,7 +379,7 @@ const App: React.FC = () => {
                                         ))}
                                 </Shelf>
                             ) : (
-                                <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-slate-200 max-w-3xl">
+                                <div className="p-8 lg:p-12 text-center bg-white rounded-3xl border border-dashed border-slate-200 max-w-3xl mx-2">
                                         <p className="text-slate-500 text-lg">No books found for that specific combination.</p>
                                         <button onClick={() => setHasSearched(false)} className="text-violet-600 font-bold mt-2 hover:underline">Clear Search</button>
                                 </div>
