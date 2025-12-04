@@ -16,10 +16,12 @@ const STATIC_DETAILS: Record<string, any> = {
   default: {
     editors: "Christopher Reath, Alena Cestabon, Steve Korg",
     language: "Standard English (USA & UK)",
-    paperback: "Paper textured, full colour, 345 pages",
+    paperback: "Paper textured, full colour",
     isbn: "ISBN: 987 3 32564 455 B"
   }
 };
+
+
 
 const BookDetailView: React.FC<BookDetailViewProps> = ({ book, contextBooks, onBack, onSelectBook, isWishlisted, onToggleWishlist }) => {
   // Use book specific details or fall back to default
@@ -30,6 +32,10 @@ const BookDetailView: React.FC<BookDetailViewProps> = ({ book, contextBooks, onB
   const hasPrev = currentIndex > 0;
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  if (book.thumbnail == 'thumbnail missing'){
+    book.thumbnail = ""
+  }
 
   const handleNext = () => {
     if (hasNext) {
@@ -50,6 +56,7 @@ const BookDetailView: React.FC<BookDetailViewProps> = ({ book, contextBooks, onB
     }, 3000);
   };
 
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -66,7 +73,7 @@ const BookDetailView: React.FC<BookDetailViewProps> = ({ book, contextBooks, onB
       
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] bg-red-50 border border-red-200 text-red-600 px-6 py-3 rounded-full shadow-lg font-medium animate-fade-in-up">
+        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-[100] bg-red-50 border border-red-200 text-red-600 px-6 py-3 rounded-full shadow-lg font-medium animate-fade-in-up">
             {toastMsg}
         </div>
       )}
@@ -102,8 +109,8 @@ const BookDetailView: React.FC<BookDetailViewProps> = ({ book, contextBooks, onB
                
                <div className="w-full h-full rounded-r-lg rounded-l-sm overflow-hidden shadow-2xl relative bg-white transition-all duration-500">
                   <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-r from-white/40 to-transparent z-20"></div>
-                  {book.coverUrl ? (
-                    <img src={book.coverUrl} alt={book.title} className="w-full h-full object-cover" />
+                  {book.thumbnail ? (
+                    <img src={book.thumbnail} alt={book.title} className="w-full h-full object-cover" />
                   ) : (
                     <div style={{ backgroundColor: book.coverColor }} className="w-full h-full flex items-center justify-center p-8 text-center">
                         <h1 className="text-white font-serif text-4xl font-bold">{book.title}</h1>
@@ -144,13 +151,13 @@ const BookDetailView: React.FC<BookDetailViewProps> = ({ book, contextBooks, onB
            
            {/* Header Info */}
            <div className="space-y-4 animate-slide-up delay-300 text-center lg:text-left">
-              <h1 className="text-4xl lg:text-6xl font-serif font-bold text-slate-900 leading-[1.1]">
+              <h1 className="text-4xl lg:text-6xl lg:-mt-6 font-serif font-bold text-slate-900 leading-[1.1]">
                 {book.title}
               </h1>
-              <p className="text-xl font-medium text-slate-500">{book.author}</p>
+              <p className="text-xl font-medium text-slate-500">{book.authors.replace(';',', ')}</p>
               
               <p className="text-slate-500 italic max-w-xl mx-auto lg:mx-0 pt-2 border-l-4 border-orange-200 pl-4">
-                  "Get ready to uncover the dark secrets and betrayals in the book. A thrilling adventure awaits you."
+                  {book['title and subtitle']}
               </p>
            </div>
 
@@ -196,28 +203,25 @@ const BookDetailView: React.FC<BookDetailViewProps> = ({ book, contextBooks, onB
               
               <div className="space-y-4">
                  <h3 className="font-serif font-bold text-xl text-slate-800">Description</h3>
-                 <p className="text-slate-500 leading-relaxed">
+                 <p className=" description text-slate-500 leading-relaxed max-h-[30svh] overflow-y-scroll scrollbar-thin scrollbar-thumb-slate-500 scrollbar-track-slate-200">
                    {book.description}
                  </p>
-                 <p className="text-slate-500 leading-relaxed">
-                   With action-packed sequences, shocking twists, and moments of heart-wrenching tragedy, this book is a must-read for any fan of the {book.category} genre.
-                 </p>
                  
-                 <div className="flex items-center gap-3 pt-4">
-                    <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Roberto" alt="Reviewer" />
-                    </div>
-                    <div>
-                        <p className="text-sm font-bold text-slate-900">Roberto Jordan</p>
-                        <p className="text-xs text-slate-400">What a delightful and magical book it is!</p>
-                    </div>
-                 </div>
               </div>
 
               <div className="space-y-6">
+                
                  <div>
-                    <h4 className="font-bold text-slate-900 mb-1">Editors</h4>
-                    <p className="text-sm text-slate-500">{details.editors}</p>
+                    <h4 className="font-bold text-slate-900 mb-1">Written By</h4>
+                    <div className="flex items-center gap-3 pt-4">
+                        <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Roberto" alt="Reviewer" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold text-slate-900">{book.authors.replace(';',', ')}</p>
+                            <p className="text-xs text-slate-400">Author, Writer</p>
+                        </div>
+                    </div>
                  </div>
                  
                  <div>
@@ -227,8 +231,9 @@ const BookDetailView: React.FC<BookDetailViewProps> = ({ book, contextBooks, onB
 
                  <div>
                     <h4 className="font-bold text-slate-900 mb-1">Paperback</h4>
-                    <p className="text-sm text-slate-500">{details.paperback}</p>
-                    <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider">{details.isbn}</p>
+                    <p className="text-sm text-slate-500">{details.paperback} </p>
+                    <p className='pb-2'>{book.num_pages} pages</p>
+                    <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider">ISBN: {book.isbn13}</p>
                  </div>
               </div>
 
@@ -256,10 +261,10 @@ const BookDetailView: React.FC<BookDetailViewProps> = ({ book, contextBooks, onB
                         }
                     `}
                 >
-                    {b.coverUrl ? (
-                        <img src={b.coverUrl} alt={b.title} className="w-full h-full object-cover" />
+                    {b.thumbnail ? (
+                        <img src={b.thumbnail} alt={b.title} className="w-full h-full object-cover" />
                     ) : (
-                        <div style={{ backgroundColor: b.coverColor }} className="w-full h-full"></div>
+                        <div style={{ backgroundColor: '#3d3d3dff' }} className="w-full h-full"></div>
                     )}
                 </button>
             ))}

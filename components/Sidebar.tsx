@@ -4,9 +4,10 @@ import { Home, Library, Info, LogOut, Menu, X } from 'lucide-react';
 interface SidebarProps {
   currentView: 'search' | 'wishlist' | 'about';
   onChangeView: (view: 'search' | 'wishlist' | 'about') => void;
+  no_of_books:number;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView,no_of_books }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleNavClick = (view: 'search' | 'wishlist' | 'about') => {
@@ -20,7 +21,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) => {
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-[#FDFBF7]/95 backdrop-blur-sm border-b border-stone-200 z-50 flex items-center justify-between px-4 shadow-sm">
         <div className="flex items-center gap-2">
           <div className="text-2xl">🦉</div>
-          <h1 className="text-xl font-serif font-bold text-slate-800 tracking-tight">Readowl</h1>
+          <h1 className="text-xl font-serif font-bold text-slate-800 tracking-tight">BookOwl</h1>
         </div>
         <button 
           onClick={() => setIsMobileMenuOpen(true)}
@@ -50,7 +51,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) => {
           <div className="flex items-center justify-between mb-12">
             <div className="flex items-center gap-3">
               <div className="text-3xl">🦉</div>
-              <h1 className="text-2xl font-serif font-bold text-slate-800 tracking-tight">Readowl</h1>
+              <h1 className="text-2xl font-serif font-bold text-slate-800 tracking-tight">BookOwl</h1>
             </div>
             <button 
               onClick={() => setIsMobileMenuOpen(false)}
@@ -84,6 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) => {
             >
               <Library size={22} className={currentView === 'wishlist' ? "text-orange-500" : ""} />
               <span>My Library</span>
+              { no_of_books>0 && <span className='rounded-full bg-[#feba4f] text-white flex justify-center items-center w-5 pr-[1px] h-5 text-xs'>{no_of_books}</span>}
             </button>
 
             <button

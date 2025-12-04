@@ -11,11 +11,12 @@ interface ShelfProps {
 
 const Shelf: React.FC<ShelfProps> = ({ title, children, highlight, onViewAll, subtitle }) => {
   return (
-    <div className="w-full mb-8 lg:mb-12 animate-fade-in-up">
+    <div className="w-full mb-8 lg:mb-12 animate-fade-in-up ">
       <div className={`flex items-baseline justify-between px-2 ${subtitle ? 'mb-3' : 'mb-4 lg:mb-6'}`}>
-        <h2 className={`text-xl lg:text-2xl font-serif font-bold ${highlight ? 'text-orange-900' : 'text-slate-700'}`}>
+        <h2 className={`text-xl lg:text-2xl font-serif mb-4 font-bold ${highlight ? 'text-orange-900' : 'text-slate-700'}`}>
           {title}
         </h2>
+        
         {onViewAll && (
           <button 
             onClick={onViewAll}
@@ -25,6 +26,7 @@ const Shelf: React.FC<ShelfProps> = ({ title, children, highlight, onViewAll, su
           </button>
         )}
       </div>
+      
 
       {subtitle && (
         <div className="px-2 mb-4 lg:mb-6">
@@ -35,7 +37,7 @@ const Shelf: React.FC<ShelfProps> = ({ title, children, highlight, onViewAll, su
       <div className="relative w-full">
         {/* The Books Container */}
         {/* Mobile: Grid (2 cols), Desktop: Flex Row */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-8 px-2 pb-8 lg:flex lg:flex-nowrap lg:overflow-x-auto lg:gap-12 lg:pb-12 lg:px-4 lg:scrollbar-hide lg:snap-x">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-8 px-2 pb-8 lg:flex lg:flex-nowrap lg:overflow-x-auto lg:gap-12 lg:pb-12 lg:px-4 scrollbar-hide lg:snap-x">
           {children}
         </div>
         

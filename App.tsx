@@ -8,66 +8,128 @@ import AboutView from './components/AboutView';
 import ToneSelector from './components/ToneSelector';
 import CategorySelector from './components/CategorySelector';
 import { Book, SearchParams, BookCategory, EmotionalTone } from './types';
-import { fetchBookRecommendations } from './services/geminiService';
+import { fetchBookRecommendations } from './services/get_books';
 import './app.css';
 import gsap from 'gsap';
 
 // Fallback data for initial view
 const TRENDING_BOOKS: Book[] = [
   {
-    id: "init-1",
-    title: "The Midnight Library",
-    author: "Matt Haig",
-    description: "Between life and death there is a library, and within that library, the shelves go on forever. Every book provides a chance to try another life you could have lived.",
-    category: "Fiction",
-    tone: "Happy",
-    rating: 4.5,
-    coverColor: "#2a9d8f",
-    coverUrl: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=400"
+    "id": "init-1",
+    "title": "The Midnight Library",
+    "authors": "Matt Haig",
+    "categories": "Fiction",
+    "thumbnail": "https://imgs.search.brave.com/JjM_FmhR8L3A26PhqsjbacqryK2PjFK-BzLfl8LxXGU/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWFn/ZXMuc3F1YXJlc3Bh/Y2UtY2RuLmNvbS9j/b250ZW50L3YxLzYx/M2I1Y2YxNjc3NTBi/NDJiNDgwZGEyYi9h/ZjZmN2E1NC0zY2M3/LTQ0NzgtODA2NC1i/ODlhOGViNWQ0NmQv/bWlkbmlnaHQrbGli/K2NvdmVyKzIuanBl/Zw?auto=format&fit=crop&q=80&w=400",
+    "description": "Between life and death there is a library, and within that library, the shelves go on forever. Every book provides a chance to try another life you could have lived.",
+    "average_rating": 4.5,
+    "published_year": 2020,
+    "num_pages": 304,
+    "ratings_count": 52000,
+    "simple_categories": "Fiction"
   },
   {
-    id: "init-2",
-    title: "Atomic Habits",
-    author: "James Clear",
-    description: "No matter your goals, Atomic Habits offers a proven framework for improving--every day.",
-    category: "Non-Fiction",
-    tone: "Happy",
-    rating: 4.9,
-    coverColor: "#e9c46a",
-    coverUrl: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=400"
+    "id": "init-2",
+    "title": "Atomic Habits",
+    "authors": "James Clear",
+    "description": "No matter your goals, Atomic Habits offers a proven framework for improving--every day.",
+    "categories": "Non-Fiction",
+    "average_rating": 4.9,
+    "thumbnail": "https://imgs.search.brave.com/KOvy-umQwEox6GtkUn0MS3xP3iI3h6MVkLGjEuGv_bk/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWcz/Lm9kLWNkbi5jb20v/SW1hZ2VUeXBlLTEw/MC8xMTkxLTEvJTdC/N0FENUVERkEtQzU0/NC00QjY5LTgwQTIt/OTM1NkJCOTlFMTMx/JTdESW1nMTAwLmpw/Zw?auto=format&fit=crop&q=80&w=400",
+    "published_year": 2018,
+    "num_pages": 319,
+    "ratings_count": 350000,
+    "simple_categories": "Non-Fiction"
   },
   {
-    id: "init-3",
-    title: "Project Hail Mary",
-    author: "Andy Weir",
-    description: "Ryland Grace is the sole survivor on a desperate, last-chance mission—and if he fails, humanity and the earth itself will perish.",
-    category: "Fiction",
-    tone: "Suspenseful",
-    rating: 4.8,
-    coverColor: "#264653",
-    coverUrl: "https://images.unsplash.com/photo-1614726365723-49cfae92782f?auto=format&fit=crop&q=80&w=400"
-  },
-   {
-    id: "init-4",
-    title: "Sapiens",
-    author: "Yuval Noah Harari",
-    description: "From a renowned historian comes a groundbreaking narrative of humanity’s creation and evolution.",
-    category: "Non-Fiction",
-    tone: "Surprising",
-    rating: 4.7,
-    coverColor: "#f4a261",
-    coverUrl: "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&q=80&w=400"
+    "id": "init-3",
+    "title": "Project Hail Mary",
+    "authors": "Andy Weir",
+    "description": "Ryland Grace is the sole survivor on a desperate, last-chance mission—and if he fails, humanity and the earth itself will perish.",
+    "categories": "Science Fiction",
+    "average_rating": 4.8,
+    "thumbnail": "https://imgs.search.brave.com/Kv5WppJrqtWbIYPgHId8HsPZerjOBkyPF_cGbGmdwGo/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9saXZl/LnN0YXRpY2ZsaWNr/ci5jb20vNjU1MzUv/NTQ0NDMwODMzNTBf/Mzc5OWFmMzYwNF9j/LmpwZw?auto=format&fit=crop&q=80&w=400",
+    "published_year": 2021,
+    "num_pages": 496,
+    "ratings_count": 180000,
+    "simple_categories": "Fiction"
   },
   {
-      id: "init-5",
-      title: "Educated",
-      author: "Tara Westover",
-      description: "Born to survivalists in the mountains of Idaho, Tara Westover was seventeen the first time she set foot in a classroom.",
-      category: "Non-Fiction",
-      tone: "Sad",
-      rating: 4.6,
-      coverColor: "#e76f51",
-      coverUrl: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?auto=format&fit=crop&q=80&w=400"
+    "id": "init-4",
+    "title": "Sapiens",
+    "authors": "Yuval Noah Harari",
+    "description": "From a renowned historian comes a groundbreaking narrative of humanity’s creation and evolution.",
+    "categories": "Non-Fiction",
+    "average_rating": 4.7,
+    "thumbnail": "https://imgs.search.brave.com/dCVagdBlz6uwJ9kjHehcm-uwD7-0kxKRMOcAgDGtjyg/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/eW5oYXJhcmkuY29t/L3dwLWNvbnRlbnQv/dXBsb2Fkcy8yMDE3/LzAxL1NhcGllbnMt/QWxiYW5pYW4yLnBu/Zw?auto=format&fit=crop&q=80&w=400",
+    "published_year": 2014,
+    "num_pages": 443,
+    "ratings_count": 140000,
+    "simple_categories": "Non-Fiction"
+  },
+  {
+    "id": "init-5",
+    "title": "Educated",
+    "authors": "Tara Westover",
+    "description": "Born to survivalists in the mountains of Idaho, Tara Westover was seventeen the first time she set foot in a classroom.",
+    "categories": "Memoir",
+    "average_rating": 4.6,
+    "thumbnail": "https://imgs.search.brave.com/cjYKyrSoes5PfalbrwjCgh3XQRRohiEPBBegAagrixc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pMC53/cC5jb20vc2hlcnJl/eW1leWVyLmNvbS93/cC1jb250ZW50L3Vw/bG9hZHMvMjAxOS8w/Ny9FZHVjYXRlZC5q/cGc_cmVzaXplPTMx/NSw0NzUmc3NsPTE?auto=format&fit=crop&q=80&w=400",
+    "published_year": 2018,
+    "num_pages": 352,
+    "ratings_count": 190000,
+    "simple_categories": "Non-Fiction"
+  },
+  {
+    "id": "init-6",
+    "title": "The Silent Patient",
+    "authors": "Alex Michaelides",
+    "description": "Alicia Berenson's life is seemingly perfect until she shoots her husband five times and then never speaks another word.",
+    "categories": "Thriller",
+    "average_rating": 4.0,
+    "thumbnail": "https://imgs.search.brave.com/mhHLjsntXEQpkrroInTJSrs-XCYp0Uzh0J_Pw7VOpOM/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pMC53/cC5jb20vd3d3LmFw/bmlib29rLmluL3dw/LWNvbnRlbnQvdXBs/b2Fkcy8yMDIzLzA5/L1RoZS1zaWxlbnQt/UGF0aWVudC5qcGc_/Zml0PTExNzAsMTgw/NSZzc2w9MQ?auto=format&fit=crop&q=80&w=400",
+    "published_year": 2019,
+    "num_pages": 323,
+    "ratings_count": 250000,
+    "simple_categories": "Fiction"
+  },
+  {
+    "id": "init-7",
+    "title": "Where the Crawdads Sing",
+    "authors": "Delia Owens",
+    "description": "For years, rumors of the 'Marsh Girl' have haunted Barkley Cove. When Chase Andrews is found dead, the locals immediately suspect Kya Clark.",
+    "categories": "Mystery",
+    "average_rating": 4.4,
+    "thumbnail": "https://imgs.search.brave.com/HlzBnsjxJDNFHyaA2aI0S3xj_qgNZzC7TBvLaSDbmbc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tLm1l/ZGlhLWFtYXpvbi5j/b20vaW1hZ2VzL0kv/NTEzcXZtSE5kR0wu/anBn?auto=format&fit=crop&q=80&w=400",
+    "published_year": 2018,
+    "num_pages": 384,
+    "ratings_count": 480000,
+    "simple_categories": "Fiction"
+  },
+  {
+    "id": "init-8",
+    "title": "The 7 Habits of Highly Effective People",
+    "authors": "Stephen Covey",
+    "description": "A paradigm-shifting guide to personal and professional effectiveness based on timeless, universal principles.",
+    "categories": "Self-Help",
+    "average_rating": 4.1,
+    "thumbnail": "https://imgs.search.brave.com/2hU9xJJ9V3kwqCS407Y4a_r6t6u2YzV-b1T89lEExDY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90aGV0/cmVhc3VyZXRyb3Zl/LmluL3Byb2R1Y3Rz/L3RveXMvdGh1bWIv/U3RlcGhlbiUyMFIu/JTIwQ292ZXktJTIw/VGhlJTIwNyUyMEhh/Yml0cyUyMG9mJTIw/SGlnaGx5JTIwRWZm/ZWN0aXZlJTIwUGVv/cGxlLmpwZw?auto=format&fit=crop&q=80&w=400",
+    "published_year": 1989,
+    "num_pages": 381,
+    "ratings_count": 85000,
+    "simple_categories": "Non-Fiction"
+  },
+  {
+    "id": "init-9",
+    "title": "Circe",
+    "authors": "Madeline Miller",
+    "description": "In the house of Helios, god of the sun and mightiest of the Titans, a daughter is born: Circe, who discovers she possesses the power of witchcraft.",
+    "categories": "Fantasy",
+    "average_rating": 4.2,
+    "thumbnail": "https://imgs.search.brave.com/fDq7P6rlkcfQ96CU5y2uXfvadv0Bxor97SN-plb6z2g/rs:fit:860:0:0:0/g:ce/aHR0cDovL21hZGVs/aW5lbWlsbGVyLmNv/bS93cC1jb250ZW50/L3VwbG9hZHMvMjAx/MS8wOC9jaXJjZS1t/YWRlbGluZS1taWxs/ZXIuanBn?auto=format&fit=crop&q=80&w=400",
+    "published_year": 2018,
+    "num_pages": 393,
+    "ratings_count": 310000,
+    "simple_categories": "Fiction"
   }
 ];
 
@@ -183,6 +245,7 @@ const App: React.FC = () => {
     try {
       const results = await fetchBookRecommendations(params);
       setSearchResults(results);
+      console.log(results)
       // Scroll to results
       setTimeout(() => {
         const resultsEl = document.getElementById('results-shelf');
@@ -216,7 +279,7 @@ const App: React.FC = () => {
   };
 
   // Determine which results to display based on "Full Shelf" state
-  const displayedResults = showAllResults ? searchResults : searchResults.slice(0, 5);
+  const displayedResults = showAllResults ? searchResults : searchResults.slice(0, 8);
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-slate-800 flex font-sans overflow-x-hidden">
@@ -224,10 +287,12 @@ const App: React.FC = () => {
       {/* Sidebar - Handles Hamburger Logic internally */}
       <Sidebar 
         currentView={currentView} 
+        
         onChangeView={(view) => {
           setCurrentView(view);
           setSelectedBook(null); // Close detail view on nav change
         }} 
+        no_of_books= {wishlist.length}
       />
 
       <main className="flex-1 ml-0 lg:ml-64 min-h-screen flex flex-col relative pt-16 lg:pt-0 w-full">
@@ -250,7 +315,7 @@ const App: React.FC = () => {
                         {/* Header Text */}
                         <div className=" header-text mb-6 min-h-[120px] lg:min-h-[140px] flex flex-col justify-center">
                             <div className="flex items-center gap-2 mb-3">
-                                <span className="bg-violet-100 text-violet-700 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase flex items-center gap-1">
+                                <span className="bg-violet-100 text-violet-700 px-3 py-1 rounded-full text-[14px] font-bold tracking-wider uppercase flex items-center gap-1">
                                     <Sparkles size={12} /> AI Librarian
                                 </span>
                             </div>
@@ -290,8 +355,8 @@ const App: React.FC = () => {
                             <div className="flex flex-col gap-6 max-w-4xl pt-2 w-full">
                                 <div className="flex flex-col gap-3 w-full">
                                     <CategorySelector 
-                                        selectedCategory={params.category}
-                                        onSelect={(cat) => setParams(prev => ({ ...prev, category: cat }))} 
+                                        selectedCategory={params.categories}
+                                        onSelect={(cat) => setParams(prev => ({ ...prev, categories: cat }))} 
                                     />
                                 </div>
                                 <div className="h-px bg-slate-100 w-full max-w-xl"></div>
@@ -351,13 +416,25 @@ const App: React.FC = () => {
 
                     {/* Search Results */}
                     {!loading && hasSearched && (
-                        <div id="results-shelf" className="scroll-mt-6">
+                        <div id="results-shelf" className="scroll-mt-6 lg:scrollbar-hide">
+                          
                             {searchResults.length > 0 ? (
                                 <Shelf 
                                     title={`Curated for "${params.query}"`} 
                                     highlight 
                                     onViewAll={() => setShowAllResults(true)}
                                     subtitle={
+                                        <div>
+                                          <div className='Note mb-8'>
+                                          <span className='font-bold opacity-50'>
+                                            Note : 
+                                          </span>
+                                          <span className='font-light opacity-50 pl-2'>
+                                            Our book database is limited, but we’ll do our best to find your preferred book.
+                                          </span>
+                                        </div>
+
+
                                         <button 
                                             onClick={() => setCurrentView('about')}
                                             className="flex items-center gap-2 px-4 py-2 rounded-full bg-violet-100 text-violet-700 text-sm font-bold hover:bg-violet-200 transition-colors"
@@ -365,6 +442,7 @@ const App: React.FC = () => {
                                             <HelpCircle size={16} />
                                             Show how it works
                                         </button>
+                                        </div>
                                     }
                                 >
                                         {displayedResults.map((book, i) => (

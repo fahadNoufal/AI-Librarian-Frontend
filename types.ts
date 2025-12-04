@@ -1,21 +1,27 @@
 export interface Book {
   id: string;
   title: string;
-  author: string;
+  authors: string;
+  categories: string;
+  thumbnail: string,
   description: string;
-  category: string;
-  tone: string;
-  rating?: number;
-  coverColor?: string; // Hex code for a generated placeholder
-  coverUrl?: string; // URL for a real image
+  published_year:number;
+  average_rating:number;
+  num_pages:number;
+  ratings_count:number;
+  simple_categories:string;
+  // 'title and subtitle':string;
+  // tone: string;
+  // rating?: number;
+  // coverColor?: string; // Hex code for a generated placeholder
 }
 
 export enum BookCategory {
   ALL = 'All',
   FICTION = 'Fiction',
-  NON_FICTION = 'Non-Fiction',
+  NON_FICTION = 'NonFiction',
   CHILDRENS_FICTION = "Children's Fiction",
-  CHILDRENS_NON_FICTION = "Children's Non-Fiction"
+  CHILDRENS_NON_FICTION = "Children's NonFiction"
 }
 
 export enum EmotionalTone {

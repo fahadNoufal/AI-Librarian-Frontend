@@ -12,11 +12,17 @@ interface BookCardProps {
 
 const BookCard: React.FC<BookCardProps> = ({ book, index, isWishlisted, onToggleWishlist, onClick }) => {
   
+  function limitChars(text: string, n: number): string {
+    if (text.length <= n) return text;
+    return text.slice(0, n) + " …";
+  }
+
   return (
     <div 
       className="group relative flex-shrink-0 w-full lg:w-52 snap-center flex flex-col"
       style={{ animationDelay: `${index * 50}ms` }}
     >
+      <span className="text-[10px] lg:text-xs opacity-40 font-medium uppercase py-2  tracking-widest">{book.categories}</span>
       {/* Clickable Area for Details */}
       <div 
         className="cursor-pointer mb-1"
@@ -31,19 +37,19 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, isWishlisted, onToggle
             {/* Spine Highlight (Left edge) */}
             <div className="absolute left-0 top-0 bottom-0 w-1 lg:w-1.5 bg-gradient-to-r from-white/40 to-transparent z-20"></div>
             
-            {book.coverUrl ? (
+            {book.thumbnail ? (
               <img 
-                src={book.coverUrl} 
+                src={book.thumbnail} 
                 alt={book.title}
                 className="w-full h-full object-cover"
               />
             ) : (
               <div 
                 className="w-full h-full flex flex-col p-2 lg:p-4 items-center justify-center text-center"
-                style={{ backgroundColor: book.coverColor || '#ccc' }}
+                style={{ backgroundColor: '#ccc' }}
               >
                  <span className="font-serif font-black text-white/90 text-3xl lg:text-4xl mb-2">{book.title.charAt(0)}</span>
-                 <span className="text-[10px] lg:text-xs text-white/80 font-bold uppercase tracking-widest">{book.category}</span>
+                 <span className="text-[10px] lg:text-xs text-white/80 font-bold uppercase tracking-widest">{book.categories}</span>
               </div>
             )}
           </div>
@@ -55,9 +61,15 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, isWishlisted, onToggle
         {/* Book Info */}
         <div className="px-1 space-y-1">
           <h3 className="font-bold text-slate-800 leading-tight text-sm lg:text-base line-clamp-2 group-hover:text-violet-700 transition-colors">
-            {book.title}
+            {limitChars(book.title, 30)}
+            <span className=' text-xs px-2 opacity-60'>
+              {book.published_year}
+            </span>
           </h3>
-          <p className="text-xs lg:text-sm text-slate-400 font-medium truncate">{book.author}</p>
+          <p className="text-xs lg:text-sm text-slate-400 font-medium truncate">
+            {book.authors.split(";")[0].trim()}
+            {book.authors.split(";").length > 1 && " and others"}
+          </p>
         </div>
       </div>
 
@@ -65,7 +77,10 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, isWishlisted, onToggle
       <div className="mt-auto px-1 pt-2 lg:pt-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
              <span className="inline-flex items-center text-[10px] lg:text-xs font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md">
-                  <Star size={10} className="mr-1 text-orange-400 fill-orange-400" /> {book.rating}
+                  <Star size={10} className="mr-1 text-orange-400 fill-orange-400" /> {book.average_rating}
+             </span>
+             <span className=' text-xs opacity-40'>
+                {book.ratings_count}
              </span>
           </div>
 
