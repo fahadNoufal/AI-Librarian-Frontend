@@ -15,6 +15,11 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ selectedCategory, o
       <div className="flex flex-wrap gap-2 lg:gap-3">
         {(Object.values(BookCategory) as BookCategory[]).map((cat) => {
           const isSelected = selectedCategory === cat;
+          // console.log(BookCategory)
+          // console.log(selectedCategory)
+
+          // console.log(isSelected)
+          
           return (
             <button
               key={cat}

@@ -136,9 +136,11 @@ const TRENDING_BOOKS: Book[] = [
 const App: React.FC = () => {
   const [params, setParams] = useState<SearchParams>({
     query: '',
-    category: BookCategory.ALL,
+    category: "All",
     tone: EmotionalTone.ALL
   });
+  
+
   const [searchResults, setSearchResults] = useState<Book[]>([]);
   const [wishlist, setWishlist] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
@@ -162,7 +164,7 @@ const App: React.FC = () => {
         id: `classic-${i}` // distinct IDs
     }));
   }, []);
-
+  
   // GSAP Typewriter Animation
   useEffect(() => {
     // Only run if we are in search view, no book is selected (so header is visible), and element ref exists
@@ -280,7 +282,7 @@ const App: React.FC = () => {
 
   // Determine which results to display based on "Full Shelf" state
   const displayedResults = showAllResults ? searchResults : searchResults.slice(0, 8);
-
+  
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-slate-800 flex font-sans overflow-x-hidden">
       
@@ -354,9 +356,10 @@ const App: React.FC = () => {
                             {/* Filters */}
                             <div className="flex flex-col gap-6 max-w-4xl pt-2 w-full">
                                 <div className="flex flex-col gap-3 w-full">
+                                    
                                     <CategorySelector 
-                                        selectedCategory={params.categories}
-                                        onSelect={(cat) => setParams(prev => ({ ...prev, categories: cat }))} 
+                                        selectedCategory={params.category}
+                                        onSelect={(cat) => setParams(prev => ({ ...prev, category: cat }))} 
                                     />
                                 </div>
                                 <div className="h-px bg-slate-100 w-full max-w-xl"></div>
