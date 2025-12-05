@@ -339,7 +339,7 @@ const App: React.FC = () => {
                                     type="text"
                                     value={params.query}
                                     onChange={(e) => setParams({ ...params, query: e.target.value })}
-                                    placeholder="e.g. A mystery set in 1920s Paris..."
+                                    placeholder="e.g. a detective book with clever puzzles..."
                                     className="block w-full pl-11 lg:pl-12 pr-12 lg:pr-14 py-3 lg:py-4 bg-white rounded-2xl text-base lg:text-lg font-medium text-slate-800 placeholder:text-slate-400 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] focus:shadow-[0_8px_30px_rgb(0,0,0,0.12)] focus:outline-none transition-all duration-300"
                                 />
                                 <button 

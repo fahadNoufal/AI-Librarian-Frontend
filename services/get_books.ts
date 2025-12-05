@@ -75,7 +75,7 @@ const parsePandasResponse = (data: any): any[] => {
 export const fetchBookRecommendations = async (params: SearchParams): Promise<Book[]> => {
   try {
     // UPDATED: Pointing to the specific endpoint in your python code
-    const url = new URL("http://localhost:8000/api/get_books");
+    const url = new URL("https://ailibrarian-926220965592.us-central1.run.app/api/get_books/");
     
     // Append Search Parameters
     if (params.query) url.searchParams.append("query", params.query);
